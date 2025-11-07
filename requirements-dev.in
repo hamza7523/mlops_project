@@ -8,3 +8,9 @@ httpx
 pre-commit
 detect-secrets
 requests
+torch
+numpy
+torchvision
+Pillow
+prometheus-client
+python-multipart

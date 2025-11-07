@@ -38,9 +38,6 @@ export default function Home() {
             Fluora Care
           </GradientText>
         </h1>
-        <p className="mx-auto mb-12 max-w-3xl text-xl font-semibold text-gray-200 md:text-2xl">
-          Harnessing advanced AI to redefine botanical wellness and help your plants thrive like never before.
-        </p>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Link href="/learn-more" className={buttonClass}>
             Learn More
