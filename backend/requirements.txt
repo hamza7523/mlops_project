@@ -11,3 +11,4 @@ boto3
 accelerate
 bitsandbytes
 pysqlite3-binary
+langchain-community
