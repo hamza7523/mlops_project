@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-multipart
+torch
+transformers
+sentence-transformers
+langchain
+chromadb
+pillow
+boto3
+accelerate
+bitsandbytes
+pysqlite3-binary

@@ -1,0 +1,5 @@
+flora_cv_model/
+flora_rag_db/
+__pycache__/
+*.zip
+venv/
