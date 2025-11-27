@@ -13,7 +13,8 @@ try:
     __import__('pysqlite3')
     import sys
     sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-except ImportError: pass 
+except ImportError: 
+    pass
 
 app = FastAPI(title="Flora-Bot API")
 
@@ -76,7 +77,8 @@ async def predict(file: UploadFile = File(...)):
             query=f"{diagnosis} treatment", k=2, filter={"disease": diagnosis}
         )
        
-        if not docs: docs = sys_comps['rag'].similarity_search(f"{diagnosis} treatment", k=2)
+        if not docs: 
+            docs = sys_comps['rag'].similarity_search(f"{diagnosis} treatment", k=2)
         context_text = "\n".join([d.page_content[:500] for d in docs]) 
 
     
