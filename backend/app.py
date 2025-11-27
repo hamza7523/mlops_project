@@ -58,10 +58,7 @@ async def startup_event():
 
     print(f"Loading {LLM_ID}...")
     tokenizer = AutoTokenizer.from_pretrained(LLM_ID)
-    model = AutoModelForCausalLM.from_pretrained(
-    LLM_ID,
-    low_cpu_mem_usage=True 
-    )
+    model = AutoModelForCausalLM.from_pretrained(LLM_ID, low_cpu_mem_usage=True)
 
     sys_comps["llm"] = pipeline(
         "text-generation",
