@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.1.15",
     "@svgr/webpack": "^8.1.0",
     "@tabler/icons-react": "^3.35.0",
     "class-variance-authority": "^0.7.1",
