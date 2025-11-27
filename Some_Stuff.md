@@ -5,3 +5,6 @@ pip-compile requirements-dev.in -o requirements-dev.txt
 
 Activating the virtual environment
 source .venv/Scripts/activate
+
+Uvicorn server start, run this from root directory, after venv
+uvicorn src.app.main:app --reload
