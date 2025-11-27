@@ -1,6 +1,8 @@
 import os
 import torch
 import io
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -12,8 +14,7 @@ from transformers import (
     AutoTokenizer,
     pipeline,
 )
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+
 
 try:
     __import__("pysqlite3")
@@ -57,7 +58,10 @@ async def startup_event():
 
     print(f"Loading {LLM_ID}...")
     tokenizer = AutoTokenizer.from_pretrained(LLM_ID)
-    model = AutoModelForCausalLM.from_pretrained(LLM_ID)
+    model = AutoModelForCausalLM.from_pretrained(
+    LLM_ID,
+    low_cpu_mem_usage=True 
+    )
 
     sys_comps["llm"] = pipeline(
         "text-generation",
