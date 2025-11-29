@@ -15,3 +15,6 @@ accelerate
 bitsandbytes
 langchain-community
 python-dotenv
+optimum[onnxruntime]
+llama-cpp-python
+huggingface-hub
