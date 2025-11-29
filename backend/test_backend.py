@@ -1,7 +1,8 @@
 import requests
 import os
 
-BASE_URL = "http://127.0.0.1:8000"
+# Allow configuration via environment variable (useful for Docker)
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
 
 
 def main():

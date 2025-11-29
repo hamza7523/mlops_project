@@ -8,8 +8,8 @@ services:
       - "8000:8000"
     volumes:
       # Mount the local model directory to the container
-      # CHANGE THIS PATH to match where your models are actually stored locally
-      - C:/Users/qamar/Desktop/mlops_models:/app/models
+      # Teammates: Place your model files in the 'models' folder in the project root
+      - ./models:/app/models
     environment:
       - MODEL_DIR=/app/models
       # Pass AWS credentials if needed for download_models.py (optional if models are already there)

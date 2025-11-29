@@ -51,18 +51,17 @@ sys_comps = {}
 async def startup_event():
     print("⚙️ Initializing Free Tier Mode (CPU)...")
 
-    if not os.path.exists(CV_DIR):
-        raise RuntimeError("❌ Models missing! Run download_models.py")
-
-    sys_comps["cv_proc"] = AutoImageProcessor.from_pretrained(CV_DIR)
-
-    # Check if ONNX model exists, otherwise fallback to PyTorch
+    # 1. Load Computer Vision Model (Prefer ONNX)
     if os.path.exists(ONNX_DIR):
         print("🚀 Loading ONNX Optimized CV Model...")
         sys_comps["cv_model"] = ORTModelForImageClassification.from_pretrained(ONNX_DIR)
-    else:
+        sys_comps["cv_proc"] = AutoImageProcessor.from_pretrained(ONNX_DIR)
+    elif os.path.exists(CV_DIR):
         print("⚠️ ONNX model not found. Loading standard PyTorch model...")
         sys_comps["cv_model"] = AutoModelForImageClassification.from_pretrained(CV_DIR)
+        sys_comps["cv_proc"] = AutoImageProcessor.from_pretrained(CV_DIR)
+    else:
+        raise RuntimeError("❌ CV Models missing! Run download_models.py")
 
     embed_fn = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
