@@ -16,6 +16,10 @@ from transformers import (
 )
 
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 try:
     __import__("pysqlite3")
     import sys
@@ -33,8 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-CV_DIR = "./flora_cv_model"
-RAG_DIR = "./flora_rag_db"
+MODEL_DIR = os.getenv("MODEL_DIR", ".")
+CV_DIR = os.path.join(MODEL_DIR, "flora_cv_model")
+RAG_DIR = os.path.join(MODEL_DIR, "flora_rag_db")
 LLM_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 

@@ -84,7 +84,7 @@ export default function Home() {
             className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-12 text-center border-t border-neutral-800/50 pt-10 w-full max-w-4xl"
         >
             <div className="flex flex-col items-center group cursor-default">
-                <span className="text-4xl font-bold text-[#40ffaa] mb-2 drop-shadow-[0_0_10px_rgba(64,255,170,0.5)]">97.8%</span>
+                <span className="text-4xl font-bold text-[#40ffaa] mb-2 drop-shadow-[0_0_10px_rgba(64,255,170,0.5)]">99.86%</span>
                 <span className="text-sm text-neutral-400 uppercase tracking-widest font-medium">Accuracy</span>
             </div>
             <div className="flex flex-col items-center group cursor-default">
