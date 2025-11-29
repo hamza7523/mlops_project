@@ -10,10 +10,9 @@ from PIL import Image
 from transformers import (
     AutoImageProcessor,
     AutoModelForImageClassification,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    pipeline,
 )
+from optimum.onnxruntime import ORTModelForImageClassification
+from llama_cpp import Llama
 
 
 from dotenv import load_dotenv
@@ -39,8 +38,10 @@ app.add_middleware(
 
 MODEL_DIR = os.getenv("MODEL_DIR", ".")
 CV_DIR = os.path.join(MODEL_DIR, "flora_cv_model")
+ONNX_DIR = os.path.join(MODEL_DIR, "flora_cv_onnx")
 RAG_DIR = os.path.join(MODEL_DIR, "flora_rag_db")
-LLM_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+GGUF_FILE = "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
+GGUF_PATH = os.path.join(MODEL_DIR, GGUF_FILE)
 
 
 sys_comps = {}
@@ -54,25 +55,32 @@ async def startup_event():
         raise RuntimeError("❌ Models missing! Run download_models.py")
 
     sys_comps["cv_proc"] = AutoImageProcessor.from_pretrained(CV_DIR)
-    sys_comps["cv_model"] = AutoModelForImageClassification.from_pretrained(CV_DIR)
+
+    # Check if ONNX model exists, otherwise fallback to PyTorch
+    if os.path.exists(ONNX_DIR):
+        print("🚀 Loading ONNX Optimized CV Model...")
+        sys_comps["cv_model"] = ORTModelForImageClassification.from_pretrained(ONNX_DIR)
+    else:
+        print("⚠️ ONNX model not found. Loading standard PyTorch model...")
+        sys_comps["cv_model"] = AutoModelForImageClassification.from_pretrained(CV_DIR)
 
     embed_fn = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
     sys_comps["rag"] = Chroma(persist_directory=RAG_DIR, embedding_function=embed_fn)
 
-    print(f"Loading {LLM_ID}...")
-    tokenizer = AutoTokenizer.from_pretrained(LLM_ID)
-    model = AutoModelForCausalLM.from_pretrained(LLM_ID, low_cpu_mem_usage=True)
+    print(f"🚀 Loading GGUF Optimized LLM: {GGUF_FILE}...")
+    if not os.path.exists(GGUF_PATH):
+        raise RuntimeError(
+            f"❌ GGUF Model missing at {GGUF_PATH}! Run download_models.py"
+        )
 
-    sys_comps["llm"] = pipeline(
-        "text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        max_new_tokens=256,
-        device_map="cpu",
+    sys_comps["llm"] = Llama(
+        model_path=GGUF_PATH,
+        n_ctx=2048,  # Context window
+        n_threads=4,  # Number of CPU threads to use
+        verbose=False,
     )
-    sys_comps["tokenizer"] = tokenizer
     print("API READY.")
 
 
@@ -97,8 +105,12 @@ async def predict(file: UploadFile = File(...)):
         context_text = "\n".join([d.page_content[:500] for d in docs])
 
         prompt = f"<|system|>\nYou are a botanist. Explain {diagnosis} and treatment based on context.\n<|user|>\nContext: {context_text}\n<|assistant|>\n"
-        output = sys_comps["llm"](prompt)
-        response = output[0]["generated_text"].split("<|assistant|>\n")[-1].strip()
+
+        # GGUF Inference
+        output = sys_comps["llm"](
+            prompt, max_tokens=512, stop=["<|user|>", "<|system|>"], echo=False
+        )
+        response = output["choices"][0]["text"].strip()
 
         return {
             "diagnosis": diagnosis,
@@ -119,5 +131,9 @@ class ChatPayload(BaseModel):
 @app.post("/chat")
 async def chat(payload: ChatPayload):
     prompt = f"<|system|>\nAnswer based on context.\n<|user|>\nContext: {payload.context}\nQuestion: {payload.question}\n<|assistant|>\n"
-    output = sys_comps["llm"](prompt)
-    return {"answer": output[0]["generated_text"].split("<|assistant|>\n")[-1].strip()}
+
+    # GGUF Inference
+    output = sys_comps["llm"](
+        prompt, max_tokens=512, stop=["<|user|>", "<|system|>"], echo=False
+    )
+    return {"answer": output["choices"][0]["text"].strip()}
