@@ -3,53 +3,86 @@ import zipfile
 import os
 from dotenv import load_dotenv
 from huggingface_hub import hf_hub_download
+from optimum.onnxruntime import ORTModelForImageClassification
+from transformers import AutoImageProcessor
 
 load_dotenv()
 
 BUCKET_NAME = "mlopsmodel"
 ZIP_NAME = "flora_deployment_package.zip"
-MODEL_DIR = os.getenv("MODEL_DIR", ".")
 GGUF_REPO = "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
 GGUF_FILE = "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
 
+MODEL_DIR = os.getenv("MODEL_DIR", ".")
+
+
+def download_and_unzip(s3_client, bucket, zip_name, extract_to):
+    zip_path = os.path.join(extract_to, zip_name)
+    print(f"⬇️ Downloading {zip_name} from S3...")
+    s3_client.download_file(bucket, zip_name, zip_path)
+    print(f"📦 Unzipping {zip_name}...")
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(extract_to)
+    os.remove(zip_path)
+    print(f"✅ {zip_name} extracted.")
+
+
+def convert_to_onnx():
+    cv_dir = os.path.join(MODEL_DIR, "flora_cv_model")
+    onnx_dir = os.path.join(MODEL_DIR, "flora_cv_onnx")
+
+    if os.path.exists(onnx_dir):
+        print("✅ ONNX model already exists.")
+        return
+
+    if not os.path.exists(cv_dir):
+        print(f"❌ Cannot convert: {cv_dir} not found.")
+        return
+
+    print("🔄 Converting PyTorch model to ONNX (this may take a moment)...")
+    try:
+        # Load the model and export it to ONNX
+        model = ORTModelForImageClassification.from_pretrained(cv_dir, export=True)
+        processor = AutoImageProcessor.from_pretrained(cv_dir)
+
+        # Save the ONNX model and processor
+        model.save_pretrained(onnx_dir)
+        processor.save_pretrained(onnx_dir)
+        print("✅ Export complete! ONNX model saved.")
+    except Exception as e:
+        print(f"❌ ONNX Conversion failed: {e}")
+        print("⚠️ The app will fallback to the slower PyTorch model.")
+
 
 def setup_models():
-    print(f"🚀 Connecting to S3 Bucket: {BUCKET_NAME}...")
+    print("🚀 Starting Model Setup...")
     s3 = boto3.client("s3")
 
+    if not os.path.exists(MODEL_DIR):
+        os.makedirs(MODEL_DIR)
+
+    # 1. Download Base Models (CV PyTorch + RAG) from S3
     cv_path = os.path.join(MODEL_DIR, "flora_cv_model")
     rag_path = os.path.join(MODEL_DIR, "flora_rag_db")
-    gguf_path = os.path.join(MODEL_DIR, GGUF_FILE)
 
-    # 1. Download CV & RAG Models from S3
     if os.path.exists(cv_path) and os.path.exists(rag_path):
-        print(f"✅ CV & RAG Models already present in {MODEL_DIR}.")
+        print("✅ Base models already present.")
     else:
-        if not os.path.exists(MODEL_DIR):
-            os.makedirs(MODEL_DIR)
-
-        zip_path = os.path.join(MODEL_DIR, ZIP_NAME)
-
         try:
-            print(f"⬇️ Downloading models to {MODEL_DIR} (this takes time)...")
-            s3.download_file(BUCKET_NAME, ZIP_NAME, zip_path)
-            print("✅ Downloaded. Unzipping...")
-
-            with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                zip_ref.extractall(MODEL_DIR)
-
-            os.remove(zip_path)
-            print("🎉 CV & RAG Models ready!")
-
+            download_and_unzip(s3, BUCKET_NAME, ZIP_NAME, MODEL_DIR)
         except Exception as e:
             print(f"❌ Error downloading from S3: {e}")
-            print("⚠️ Make sure you run 'aws configure' on the server!")
+            print("⚠️ Check your AWS credentials.")
 
-    # 2. Download GGUF LLM from Hugging Face
+    # 2. Convert CV Model to ONNX (Optimization)
+    convert_to_onnx()
+
+    # 3. Download GGUF LLM (From HuggingFace)
+    gguf_path = os.path.join(MODEL_DIR, GGUF_FILE)
     if os.path.exists(gguf_path):
-        print(f"✅ GGUF Model already present: {gguf_path}")
+        print("✅ GGUF Model already present.")
     else:
-        print(f"⬇️ Downloading GGUF Model ({GGUF_FILE})...")
+        print("⬇️ Downloading GGUF Model from HuggingFace...")
         try:
             hf_hub_download(
                 repo_id=GGUF_REPO,
@@ -57,9 +90,9 @@ def setup_models():
                 local_dir=MODEL_DIR,
                 local_dir_use_symlinks=False,
             )
-            print("🎉 GGUF Model ready!")
+            print("✅ GGUF Model downloaded.")
         except Exception as e:
-            print(f"❌ Error downloading GGUF: {e}")
+            print(f"❌ Failed to download GGUF: {e}")
 
 
 if __name__ == "__main__":

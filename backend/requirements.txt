@@ -1,7 +1,6 @@
 fastapi
 uvicorn
 python-multipart
-torch
 transformers
 sentence-transformers
 langchain
@@ -12,7 +11,6 @@ numpy<2.0.0
 pillow
 boto3
 accelerate
-bitsandbytes
 langchain-community
 python-dotenv
 optimum[onnxruntime]

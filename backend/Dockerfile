@@ -8,20 +8,23 @@ WORKDIR /app
 # build-essential: for gcc/g++ compilers
 # cmake: for building llama.cpp
 # curl: for healthchecks or downloading tools
+# libgl1, libglib2.0-0: required for opencv/image processing libraries
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     curl \
+    libgl1 \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 
 # Install Python dependencies
-# We use --no-cache-dir to keep the image small
-# We force a reinstall of llama-cpp-python with specific flags if needed,
-# but usually the pip install handles the pre-built wheel or compilation.
-RUN pip install --no-cache-dir -r requirements.txt
+# 1. Install CPU-only PyTorch (saves ~2GB)
+# 2. Install the rest of the requirements
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .
