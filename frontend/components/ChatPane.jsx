@@ -15,7 +15,7 @@ function ThinkingMessage({ onPause }) {
           <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400 [animation-delay:-0.15s]"></div>
           <div className="h-2 w-2 animate-bounce rounded-full bg-zinc-400"></div>
         </div>
-        <span className="text-sm text-zinc-500">AI is thinking...</span>
+        <span className="text-sm text-zinc-500">Fluora Bot is thinking...</span>
         <button
           onClick={onPause}
           className="ml-auto inline-flex items-center gap-1 rounded-full border border-zinc-300 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
@@ -28,7 +28,7 @@ function ThinkingMessage({ onPause }) {
 }
 
 const ChatPane = forwardRef(function ChatPane(
-  { conversation, onSend, onEditMessage, onResendMessage, isThinking, onPauseThinking },
+  { conversation, onSend, onUpload, onEditMessage, onResendMessage, isThinking, onPauseThinking },
   ref,
 ) {
   const [editingId, setEditingId] = useState(null)
@@ -131,7 +131,12 @@ const ChatPane = forwardRef(function ChatPane(
                     </div>
                   </div>
                 ) : (
-                  <Message role={m.role}>
+                  <Message
+                    role={m.role}
+                    image={m.image}
+                    diagnosis={m.diagnosis}
+                    confidence={m.confidence}
+                  >
                     <div className="whitespace-pre-wrap">{m.content}</div>
                   </Message>
                 )}
@@ -150,6 +155,7 @@ const ChatPane = forwardRef(function ChatPane(
           await onSend?.(text)
           setBusy(false)
         }}
+        onUpload={onUpload}
         busy={busy}
       />
     </div>

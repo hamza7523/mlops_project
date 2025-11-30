@@ -102,7 +102,7 @@ export default function AIAssistantUI() {
   }, [sidebarOpen, conversations])
 
   useEffect(() => {
-    if (!selectedId && conversations.length > 0) {
+    if (!selectedId) {
       createNewChat()
     }
   }, [])
@@ -136,11 +136,18 @@ export default function AIAssistantUI() {
       id,
       title: "New Chat",
       updatedAt: new Date().toISOString(),
-      messageCount: 0,
-      preview: "Say hello to start...",
+      messageCount: 1,
+      preview: "Please upload an image of your plant...",
       pinned: false,
       folder: "Work Projects",
-      messages: [], // Ensure messages array is empty for new chats
+      messages: [
+        {
+          id: Math.random().toString(36).slice(2),
+          role: "assistant",
+          content: "Hello! Please upload an image of your plant so I can help you diagnose any issues.",
+          createdAt: new Date().toISOString(),
+        }
+      ],
     }
     setConversations((prev) => [item, ...prev])
     setSelectedId(id)
@@ -152,6 +159,100 @@ export default function AIAssistantUI() {
     if (!name) return
     if (folders.some((f) => f.name.toLowerCase() === name.toLowerCase())) return alert("Folder already exists.")
     setFolders((prev) => [...prev, { id: Math.random().toString(36).slice(2), name }])
+  }
+
+  async function handleUpload(convId, file) {
+    const now = new Date().toISOString()
+    const imageUrl = URL.createObjectURL(file)
+
+    const userMsg = {
+      id: Math.random().toString(36).slice(2),
+      role: "user",
+      content: "Uploaded an image for analysis",
+      image: imageUrl,
+      createdAt: now
+    }
+
+    setConversations((prev) =>
+      prev.map((c) => {
+        if (c.id !== convId) return c
+        const msgs = [...(c.messages || []), userMsg]
+        return {
+          ...c,
+          messages: msgs,
+          updatedAt: now,
+          messageCount: msgs.length,
+          preview: "Uploaded an image...",
+        }
+      }),
+    )
+
+    setIsThinking(true)
+    setThinkingConvId(convId)
+
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+      const response = await fetch(`${apiUrl}/predict`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error("Prediction failed")
+
+      const data = await response.json()
+
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== convId) return c
+
+          const asstMsg = {
+            id: Math.random().toString(36).slice(2),
+            role: "assistant",
+            content: data.explanation,
+            diagnosis: data.diagnosis,
+            confidence: data.confidence,
+            createdAt: new Date().toISOString(),
+          }
+
+          const msgs = [...(c.messages || []), asstMsg]
+          return {
+            ...c,
+            title: data.diagnosis.split('___').join(' '),
+            messages: msgs,
+            updatedAt: new Date().toISOString(),
+            messageCount: msgs.length,
+            preview: asstMsg.content.slice(0, 80),
+            context: data.chat_context,
+            diagnosis: data.diagnosis
+          }
+        }),
+      )
+    } catch (error) {
+      console.error(error)
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id !== convId) return c
+          const errorMsg = {
+            id: Math.random().toString(36).slice(2),
+            role: "assistant",
+            content: "Sorry, I encountered an error analyzing the image. Please try again.",
+            createdAt: new Date().toISOString(),
+          }
+          return {
+            ...c,
+            messages: [...(c.messages || []), errorMsg],
+            updatedAt: new Date().toISOString(),
+            messageCount: (c.messages || []).length + 1,
+          }
+        }),
+      )
+    } finally {
+      setIsThinking(false)
+      setThinkingConvId(null)
+    }
   }
 
   function sendMessage(convId, content) {
@@ -177,31 +278,79 @@ export default function AIAssistantUI() {
     setThinkingConvId(convId)
 
     const currentConvId = convId
-    setTimeout(() => {
-      // Always clear thinking state and generate response for this specific conversation
-      setIsThinking(false)
-      setThinkingConvId(null)
-      setConversations((prev) =>
-        prev.map((c) => {
-          if (c.id !== currentConvId) return c
-          const ack = `Got it — I'll help with that.`
-          const asstMsg = {
-            id: Math.random().toString(36).slice(2),
-            role: "assistant",
-            content: ack,
-            createdAt: new Date().toISOString(),
-          }
-          const msgs = [...(c.messages || []), asstMsg]
-          return {
-            ...c,
-            messages: msgs,
-            updatedAt: new Date().toISOString(),
-            messageCount: msgs.length,
-            preview: asstMsg.content.slice(0, 80),
-          }
-        }),
-      )
-    }, 2000)
+
+    // Check if we have context for this conversation
+    const conversation = conversations.find(c => c.id === convId)
+
+    if (conversation?.context) {
+      // Chat mode
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+      fetch(`${apiUrl}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: content,
+          context: conversation.context,
+          diagnosis: conversation.diagnosis
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c.id !== currentConvId) return c
+            const asstMsg = {
+              id: Math.random().toString(36).slice(2),
+              role: "assistant",
+              content: data.answer,
+              createdAt: new Date().toISOString(),
+            }
+            const msgs = [...(c.messages || []), asstMsg]
+            return {
+              ...c,
+              messages: msgs,
+              updatedAt: new Date().toISOString(),
+              messageCount: msgs.length,
+              preview: asstMsg.content.slice(0, 80),
+            }
+          }),
+        )
+      })
+      .catch(err => {
+        console.error(err)
+        // Handle error
+      })
+      .finally(() => {
+        setIsThinking(false)
+        setThinkingConvId(null)
+      })
+    } else {
+      // Fallback for no context (or handle as before)
+      setTimeout(() => {
+        setIsThinking(false)
+        setThinkingConvId(null)
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c.id !== currentConvId) return c
+            const ack = `Please upload an image first so I can help you.`
+            const asstMsg = {
+              id: Math.random().toString(36).slice(2),
+              role: "assistant",
+              content: ack,
+              createdAt: new Date().toISOString(),
+            }
+            const msgs = [...(c.messages || []), asstMsg]
+            return {
+              ...c,
+              messages: msgs,
+              updatedAt: new Date().toISOString(),
+              messageCount: msgs.length,
+              preview: asstMsg.content.slice(0, 80),
+            }
+          }),
+        )
+      }, 1000)
+    }
   }
 
   function editMessage(convId, messageId, newContent) {
@@ -249,7 +398,7 @@ export default function AIAssistantUI() {
     <div className="h-screen w-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <div className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b border-zinc-200/60 bg-white/80 px-3 py-2 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70">
         <div className="ml-1 flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span className="inline-flex h-4 w-4 items-center justify-center">✱</span> AI Assistant
+          <span className="inline-flex h-4 w-4 items-center justify-center">✱</span> Fluora Bot
         </div>
         <div className="ml-auto flex items-center gap-2">
           <GhostIconButton label="Schedule">
@@ -265,7 +414,7 @@ export default function AIAssistantUI() {
         </div>
       </div>
 
-      <div className="mx-auto flex h-[calc(100vh-0px)] max-w-[1400px]">
+      <div className="flex h-[calc(100vh-0px)] w-full">
         <Sidebar
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
@@ -299,6 +448,7 @@ export default function AIAssistantUI() {
             ref={composerRef}
             conversation={selected}
             onSend={(content) => selected && sendMessage(selected.id, content)}
+            onUpload={(file) => selected && handleUpload(selected.id, file)}
             onEditMessage={(messageId, newContent) => selected && editMessage(selected.id, messageId, newContent)}
             onResendMessage={(messageId) => selected && resendMessage(selected.id, messageId)}
             isThinking={isThinking && thinkingConvId === selected?.id}

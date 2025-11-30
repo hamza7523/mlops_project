@@ -13,7 +13,11 @@ ZIP_NAME = "flora_deployment_package.zip"
 GGUF_REPO = "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
 GGUF_FILE = "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
 
-MODEL_DIR = os.getenv("MODEL_DIR", ".")
+# Changed default to 'models' subdirectory
+MODEL_DIR = os.getenv("MODEL_DIR", "models")
+
+# Ensure the directory exists
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 
 def download_and_unzip(s3_client, bucket, zip_name, extract_to):

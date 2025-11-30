@@ -36,7 +36,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_DIR = os.getenv("MODEL_DIR", ".")
+MODEL_DIR = os.getenv("MODEL_DIR", "models")
 CV_DIR = os.path.join(MODEL_DIR, "flora_cv_model")
 ONNX_DIR = os.path.join(MODEL_DIR, "flora_cv_onnx")
 RAG_DIR = os.path.join(MODEL_DIR, "flora_rag_db")
