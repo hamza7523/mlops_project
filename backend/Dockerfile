@@ -27,7 +27,23 @@ RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://
     pip install --no-cache-dir -r requirements.txt
 
 # Copy the models directory into the container
-COPY models /app/models
+// COPY models /app/models
+# (keep your existing lines up to copying code)
+WORKDIR /app
+
+# copy app code and helper script
+COPY download_models.py /app/download_models.py
+COPY . /app
+
+# Ensure /app/models exists (will be mounted at runtime by ACI)
+RUN mkdir -p /app/models
+
+# Use a tiny shell script as entrypoint: download only if empty, then start uvicorn
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
 
 # Copy the rest of the application code
 COPY . .
