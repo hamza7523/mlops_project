@@ -27,7 +27,7 @@ RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://
     pip install --no-cache-dir -r requirements.txt
 
 # Copy the models directory into the container
-// COPY models /app/models
+
 # (keep your existing lines up to copying code)
 WORKDIR /app
 
