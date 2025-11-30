@@ -699,3 +699,178 @@ pkill -f uvicorn
 ---
 
 **Last Updated:** October 31, 2025
+
+# MLOps & LLMOps – Milestone 2
+
+### Operationalizing Large Language Models
+
+Repository: **mlops_project**
+
+---
+
+## 📌 Project Overview
+
+This project extends a reproducible ML workflow into **LLMOps**, focusing on the operational lifecycle of Large Language Models (LLMs). The system includes:
+
+* Prompt engineering experiments
+* RAG (Retrieval-Augmented Generation) pipeline
+* Guardrails & safety mechanisms
+* LLM evaluation & monitoring
+* CI/CD automation
+* Cloud integration
+* Security & compliance
+
+---
+
+## ✅ Milestone D3 – Guardrails & Safety Implementation
+
+This task introduces **guardrails** inside the RAG inference pipeline to ensure safety, compliance, and protection against harmful inputs/outputs.
+
+### 🔒 Features Implemented
+
+#### **1. Input Validation**
+
+* Basic prompt injection filters
+* PII detection (simple pattern-based)
+* Length and format validation for user queries
+
+#### **2. Output Moderation**
+
+* Toxicity detection using heuristic checks
+* Hallucination prevention via answer-verification rules
+* Output sanitization if unsafe content is detected
+
+#### **3. Logging Guardrail Events**
+
+All violations are logged through the chosen monitoring layer (Prometheus / console logs) for audit trails.
+
+#### **4. RAG Integration**
+
+Guardrails are applied **before retrieval** and **after generation**:
+
+```
+User Query → Input Guardrails → Retrieve (Vector DB) → LLM Generate → Output Guardrails → Response
+```
+
+---
+
+## 🏗 Project Structure
+
+```
+mlops_project/
+│── src/
+│   ├── app.py              # FastAPI RAG API
+│   ├── ingest.py           # Document ingestion + indexing
+│   ├── guardrails.py       # Input/output safety mechanisms
+│   └── utils/              # Helpers
+│
+│── experiments/
+│   └── prompts/            # Prompt variations for D1
+│
+│── data/
+│   └── eval.jsonl          # Evaluation dataset
+│
+│── diagrams/
+│   └── architecture.png
+│   └── dataflow.png
+│
+│── README.md               # Project documentation
+│── SECURITY.md             # Security & prompt injection guidelines
+│── EVALUATION.md           # Prompt evaluation + results
+│── Makefile                # RAG automation
+│── requirements.txt
+│── .github/workflows/ci.yml
+```
+
+---
+
+## 🚀 Running the RAG Pipeline
+
+### **1. Install dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+### **2. Run ingestion**
+
+```bash
+make rag
+```
+
+### **3. Start the FastAPI server**
+
+```bash
+uvicorn src.app:app --reload
+```
+
+### **4. Test the API**
+
+Open browser:
+
+```
+http://127.0.0.1:8000/docs
+```
+
+---
+
+## 🔎 Monitoring
+
+### **Prometheus Metrics**
+
+* Request count
+* Latency
+* Guardrail violation count
+* Token usage
+
+### **Grafana Dashboard**
+
+You can import the Prometheus datasource and visualize the metrics.
+
+---
+
+## 🔐 Security & Compliance
+
+See **SECURITY.md** for:
+
+* Prompt injection defenses
+* PII policies
+* Data privacy guidelines
+* Safety guardrail architecture
+
+---
+
+## ☁️ Cloud Integration
+
+The system uses:
+
+* AWS S3 for document storage
+* AWS Lambda for automated evaluations
+  (Screenshots should be added if required.)
+
+---
+
+## 🧪 CI/CD Pipeline (GitHub Actions)
+
+Included in `.github/workflows/ci.yml`:
+
+* Linting + format checks
+* Unit + integration tests
+* Prompt evaluation on sample dataset
+* Docker build & push
+* Canary deployment steps
+
+---
+
+## 📘 Bonus Implementations (if done)
+
+* LangChain integration
+* RAG toolchains
+* A/B testing dashboard
+
+---
+
+last update on 30th october 2025
+
+---
+
