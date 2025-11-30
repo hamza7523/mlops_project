@@ -700,26 +700,6 @@ pkill -f uvicorn
 
 **Last Updated:** October 31, 2025
 
-# MLOps & LLMOps – Milestone 2
-
-### Operationalizing Large Language Models
-
-Repository: **mlops_project**
-
----
-
-## 📌 Project Overview
-
-This project extends a reproducible ML workflow into **LLMOps**, focusing on the operational lifecycle of Large Language Models (LLMs). The system includes:
-
-* Prompt engineering experiments
-* RAG (Retrieval-Augmented Generation) pipeline
-* Guardrails & safety mechanisms
-* LLM evaluation & monitoring
-* CI/CD automation
-* Cloud integration
-* Security & compliance
-
 ---
 
 ## ✅ Milestone D3 – Guardrails & Safety Implementation
