@@ -13,8 +13,13 @@ ZIP_NAME = "flora_deployment_package.zip"
 GGUF_REPO = "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
 GGUF_FILE = "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
 
-# Changed default to 'models' subdirectory
-MODEL_DIR = os.getenv("MODEL_DIR", "models")
+# Force models to be downloaded to 'models' folder in the same directory as this script
+# This ensures they are in the correct place for the Docker build (backend/models)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+
+print(f"📂 Model Directory set to: {MODEL_DIR}")
+print(f"ℹ️  This script will download models to: {os.path.abspath(MODEL_DIR)}")
 
 # Ensure the directory exists
 os.makedirs(MODEL_DIR, exist_ok=True)
@@ -80,6 +85,22 @@ def setup_models():
 
     # 2. Convert CV Model to ONNX (Optimization)
     convert_to_onnx()
+
+    # Cleanup: Remove the heavy PyTorch model after conversion to save space
+    if os.path.exists(cv_path) and os.path.exists(
+        os.path.join(MODEL_DIR, "flora_cv_onnx")
+    ):
+        print("🧹 Cleaning up raw PyTorch model to save space...")
+        import shutil
+
+        shutil.rmtree(cv_path)
+
+    # Cleanup: Remove .cache if it exists
+    cache_dir = os.path.join(MODEL_DIR, ".cache")
+    if os.path.exists(cache_dir):
+        import shutil
+
+        shutil.rmtree(cache_dir)
 
     # 3. Download GGUF LLM (From HuggingFace)
     gguf_path = os.path.join(MODEL_DIR, GGUF_FILE)
