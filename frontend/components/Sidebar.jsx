@@ -1,5 +1,7 @@
 "use client"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from 'next/link';
+import { IconLeaf } from '@tabler/icons-react';
 import {
   PanelLeftClose,
   PanelLeftOpen,
@@ -229,12 +231,13 @@ export default function Sidebar({
             )}
           >
             <div className="flex items-center gap-2 border-b border-zinc-200/60 px-3 py-3 dark:border-zinc-800">
-              <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-sm dark:from-zinc-200 dark:to-zinc-300 dark:text-zinc-900">
-                  <Asterisk className="h-4 w-4" />
-                </div>
-                <div className="text-sm font-semibold tracking-tight">AI Assistant</div>
-              </div>
+              <Link
+                href="/"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black border border-gray-700 text-white transition-all hover:bg-neutral-900 hover:border-gray-500 hover:scale-105"
+              >
+                <IconLeaf className="w-4 h-4 text-green-400" />
+                <span className="text-sm font-bold tracking-wider">Fluora Care</span>
+              </Link>
               <div className="ml-auto flex items-center gap-1">
                 <button
                   onClick={() => setSidebarCollapsed(true)}

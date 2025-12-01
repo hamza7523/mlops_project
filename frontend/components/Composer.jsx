@@ -5,12 +5,15 @@ import { Send, Loader2, Plus, Mic } from "lucide-react"
 import ComposerActionsPopover from "./ComposerActionsPopover"
 import { cls } from "./utils"
 
-const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
+const Composer = forwardRef(function Composer({ onSend, busy, onUpload }, ref) {
   const [value, setValue] = useState("")
   const [sending, setSending] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
   const [lineCount, setLineCount] = useState(1)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
   const inputRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     if (inputRef.current) {
@@ -58,11 +61,36 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
     [],
   )
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setSelectedFile(file)
+      const url = URL.createObjectURL(file)
+      setPreviewUrl(url)
+    }
+  }
+
+  const clearFile = () => {
+    setSelectedFile(null)
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
   async function handleSend() {
-    if (!value.trim() || sending) return
+    if ((!value.trim() && !selectedFile) || sending) return
     setSending(true)
     try {
-      await onSend?.(value)
+      if (selectedFile) {
+        await onUpload?.(selectedFile)
+        clearFile()
+      } else {
+        await onSend?.(value)
+      }
       setValue("")
       inputRef.current?.focus()
     } finally {
@@ -70,7 +98,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
     }
   }
 
-  const hasContent = value.length > 0
+  const hasContent = value.length > 0 || selectedFile
 
   return (
     <div className="border-t border-zinc-200/60 p-4 dark:border-zinc-800">
@@ -80,6 +108,17 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
           "max-w-3xl border-zinc-300 dark:border-zinc-700 p-3",
         )}
       >
+        {previewUrl && (
+          <div className="relative mb-2 w-fit">
+            <img src={previewUrl} alt="Preview" className="h-20 w-20 rounded-lg object-cover border border-zinc-200 dark:border-zinc-700" />
+            <button
+              onClick={clearFile}
+              className="absolute -top-2 -right-2 rounded-full bg-zinc-900 text-white p-1 hover:bg-zinc-700"
+            >
+              <Plus className="h-3 w-3 rotate-45" />
+            </button>
+          </div>
+        )}
         <div className="flex-1 relative">
           <textarea
             ref={inputRef}
@@ -87,7 +126,7 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             onChange={(e) => setValue(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="How can I help you today?"
+            placeholder={selectedFile ? "Add a message..." : "How can I help you today?"}
             rows={1}
             className={cls(
               "w-full resize-none bg-transparent text-sm outline-none placeholder:text-zinc-400 transition-all duration-200",
@@ -107,7 +146,14 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
         </div>
 
         <div className="flex items-center justify-between mt-2">
-          <ComposerActionsPopover>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleFileSelect}
+          />
+          <ComposerActionsPopover onUploadClick={() => fileInputRef.current?.click()}>
             <button
               className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors"
               title="Add attachment"
@@ -125,10 +171,10 @@ const Composer = forwardRef(function Composer({ onSend, busy }, ref) {
             </button>
             <button
               onClick={handleSend}
-              disabled={sending || busy || !value.trim()}
+              disabled={sending || busy || (!value.trim() && !selectedFile)}
               className={cls(
                 "inline-flex shrink-0 items-center gap-2 rounded-full bg-zinc-900 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900",
-                (sending || busy || !value.trim()) && "opacity-50 cursor-not-allowed",
+                (sending || busy || (!value.trim() && !selectedFile)) && "opacity-50 cursor-not-allowed",
               )}
             >
               {sending || busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
