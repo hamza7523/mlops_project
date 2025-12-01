@@ -1,114 +1,137 @@
-# Security & Compliance Policy
+# SECURITY & RESPONSIBLE AI POLICY
 
-## 1. Scope
+This document outlines the security, privacy, and responsible-AI protections implemented in the **RAG-Based LLM System** for the MLOps course project. It covers prompt-injection defenses, PII and data privacy rules, safety guardrails, and dependency security through automated vulnerability scanning.
 
-This document describes the security, privacy, and responsible AI practices for the **FloraCare** RAG + LLM system. It covers:
-- Prompt injection defenses
-- Data privacy & access control
-- Dependency vulnerability management
-- Guardrails for responsible AI behaviour
+---
 
-## 2. Threat Model (High-Level)
+## 1. Threat Model Overview
 
-We assume the following potential risks:
-- **Prompt injection**: users try to override system instructions, exfiltrate internal docs, or bypass safety policies.
-- **Data leakage**: sensitive information from the indexed corpus or user queries gets exposed in responses or logs.
-- **Supply-chain risk**: vulnerable Python dependencies (CVEs) in our environment.
-- **Abuse of the API**: users attempting harmful, toxic, or disallowed queries.
+The system assumes the following risks:
 
-## 3. Prompt Injection Defenses
+- Users attempting **prompt injection** to bypass system instructions or extract internal details.
+- **Data leakage**, including accidental exposure of sensitive documents or returned PII.
+- **Model misuse**, including attempts to generate harmful, unsafe, or disallowed content.
+- **Dependency vulnerabilities** in the Python ecosystem (CVEs).
+- **Hallucinations** caused by retrieval mismatch or missing context.
 
-We defend against prompt injection at multiple levels:
+Security is enforced both through **guardrails** and **system-level protections**.
 
-1. **System prompts & role separation**
-   - We define a fixed system prompt that clearly states:
-     - The model must follow project rules and not obey user attempts to change them.
-     - The model must refuse to reveal internal prompts, credentials, or implementation details.
-   - User instructions are always treated as **lower priority** than system rules.
+---
 
-2. **Input validation & sanitization**
-   - We apply input validation before calling the LLM:
-     - Maximum query length to avoid long, adversarial prompts.
-     - Block obvious injection phrases (e.g., “ignore previous instructions”, “you are now…”) via regex / guardrails.
-     - Reject or flag queries that attempt to read raw system prompts or configuration.
+## 2. Prompt Injection Defenses
 
-3. **Retrieval isolation**
-   - The retriever only accesses the **approved document corpus**.
-   - We never allow users to specify arbitrary file paths, SQL queries, or OS commands.
-   - The model only sees retrieved text snippets, not direct access to the underlying storage.
+To prevent users from tampering with system behaviour or revealing internal prompts:
 
-4. **No tool execution from user text**
-   - The system does not execute shell commands, database commands, or code directly from user prompts.
-   - Any future tool integration must include explicit allow-lists and argument validation.
+### **2.1 System-Prompt Isolation**
+- A fixed system prompt defines non-negotiable rules.
+- User messages never override system-level policies.
 
-## 4. Data Privacy & Handling
+### **2.2 Input Sanitization**
+- The pipeline scans queries for common injection attempts:
+  - “Ignore previous instructions”
+  - “You are now…”
+  - Attempts to extract system prompts
+- Suspicious inputs trigger a safe refusal response.
 
-We handle user and document data as follows:
+### **2.3 Retrieval Isolation**
+- The user cannot modify what documents are retrieved.
+- The model only sees context passed via the retriever.
+- No direct file access, shell commands, or code execution are allowed.
 
-- **Data minimization**
-  - We only ingest documents needed for the RAG use case.
-  - We do not store raw user queries or responses longer than necessary for debugging and evaluation.
+### **2.4 No Arbitrary Tool Execution**
+- User text can never trigger unsafe functions, external tools, or system commands.
 
-- **PII & sensitive data**
-  - Guardrails/filters run on user input and generated output to detect:
-    - Personally Identifiable Information (PII)
-    - Highly sensitive content (e.g., medical, financial, or authentication data)
-  - If detected, the system can:
-    - Mask or redact sensitive fields, or
-    - Block and return a safe error message.
+---
 
-- **Access control**
-  - Access to environment variables (API keys, DB creds) is restricted to:
-    - GitHub Actions secrets
-    - Local `.env` files that are NOT committed to Git.
-  - No secrets appear in logs, prompts, or example output.
+## 3. Data Privacy Guidelines
 
-## 5. Dependency Security (pip-audit)
+We enforce strict data-handling and privacy rules:
 
-- We manage Python dependencies via `requirements.txt`.
-- We run `pip-audit` locally and in CI to detect known CVEs.
-- Any build with unresolved vulnerabilities (especially critical ones) is treated as a **failed** CI run.
-- The process:
-  1. Install/update dependencies.
-  2. Run `pip-audit -r requirements.txt --strict`.
-  3. Upgrade or pin packages to versions that fix reported CVEs.
+### **3.1 Data Minimization**
+- Only course-approved documents are indexed.
+- No raw user queries or model outputs are stored permanently.
 
-## 6. Guardrails & Responsible AI
+### **3.2 No Logging of Sensitive Data**
+- Logs avoid storing:
+  - API keys  
+  - Credentials  
+  - PII  
+  - Raw model responses containing sensitive data  
 
-Our system integrates guardrails to enforce responsible AI behaviour:
+### **3.3 Environment Variable Safety**
+- All secrets are loaded via:
+  - `.env` (ignored by Git)
+  - GitHub Actions secrets  
+- No secrets appear in prompts, sample outputs, or logs.
 
-- **Input guardrails**
-  - Reject or flag prompts that:
-    - Request illegal, harmful, or self-harm–related content.
-    - Attempt prompt injection or exfiltration of internal system details.
-  - These are implemented via guardrails.py in src/app.
+### **3.4 Access Control**
+- Only project team members can access ingestion scripts or deployment environments.
 
-- **Output guardrails**
-  - Post-process model responses to:
-    - Detect toxicity, hate speech, or harassment.
-    - Detect hallucinations (e.g., when no relevant context is retrieved).
-  - When violations are detected:
-    - The system either refuses the request or replaces the answer with a safe, generic message.
+---
 
-- **Logging & monitoring**
-  - All guardrail violations are logged with:
-    - Timestamp, request ID, rule triggered, and action taken.
-  - These logs feed into Prometheus metrics and are visualized in Grafana dashboards.
+## 4. PII (Personally Identifiable Information) Policies
 
-- **Transparency to users**
-  - We clearly communicate limitations:
-    - The model may generate inaccurate information.
-    - The model does not provide legal, medical, or financial advice.
-  - Error / refusal messages explain that responses were blocked due to safety policies.
+The model must not generate or expose sensitive personal information.
 
-## 7. Incident Response (High-Level)
+### **4.1 Input PII Protection**
+- Inputs are scanned for PII types such as:
+  - Email, address, phone number
+  - Government ID numbers
+- If users provide PII, the system refuses to return or store it.
 
-If a security or safety issue is discovered (e.g., data leak, bypassed guardrail):
+### **4.2 Output PII Protection**
+- Guardrails block the model from:
+  - Fabricating PII about real individuals
+  - Returning sensitive content found in the indexed corpus
+- Sensitive fields may be redacted or masked.
 
-1. Reproduce and isolate the problematic behaviour.
-2. Temporarily disable the affected endpoint or feature.
-3. Patch:
-   - Update guardrail rules and/or prompts.
-   - Update dependencies if the issue is CVE-related.
-4. Add a regression test so CI ensures the issue does not reappear.
+### **4.3 PII in Retrieval**
+- Documents containing PII are excluded from ingestion.
+
+---
+
+## 5. Safety Guardrail Architecture
+
+Our system implements **multi-layered safety**:
+
+### **5.1 Input Guardrails**
+- Detect harmful intents:
+  - Violence  
+  - Hate content  
+  - Self-harm  
+  - Illegal activities  
+- On detection → The system blocks the query and returns a safe response.
+
+### **5.2 Output Guardrails**
+- After model generation, output passes through:
+  - Toxicity filters  
+  - Safety classifiers  
+  - QA checks for hallucinations  
+
+If safety violations occur:
+- The system modifies or blocks the output.
+- A transparent message is returned to the user explaining the restriction.
+
+### **5.3 RAG Hallucination Controls**
+- If retrieved context has low relevance, the system:
+  - Warns the user  
+  - Falls back to safe refusal  
+  - Does not hallucinate authoritative answers  
+
+### **5.4 Monitoring**
+- Guardrail events (blocked inputs, redacted PII, etc.) are recorded for evaluation.
+
+---
+
+## 6. Dependency & Supply-Chain Security (pip-audit)
+
+To identify vulnerabilities in Python libraries:
+
+### **6.1 pip-audit Integration**
+- We run:
+
+```bash
+pip-audit -r requirements.txt --strict
+
+
 
