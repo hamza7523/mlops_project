@@ -29,5 +29,5 @@ jobs:
         run: black --check .
 
       - name: Test with pytest
-        # Ignore LLM-specific tests (which need heavy dependencies)
-        run: pytest --ignore=tests/test_prompts.py --ignore=tests/test_backend_api.py
+        # Ignore LLM-specific prompt tests, but run the mocked API test
+        run: pytest --ignore=tests/test_prompts.py
