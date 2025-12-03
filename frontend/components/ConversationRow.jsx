@@ -1,8 +1,8 @@
 "use client"
-import { Star } from "lucide-react"
+import { Star, Trash2 } from "lucide-react"
 import { cls } from "./utils"
 
-export default function ConversationRow({ data, active, onSelect, onTogglePin, showMeta }) {
+export default function ConversationRow({ data, active, onSelect, onTogglePin, onDelete, showMeta }) {
   // --- CHANGES ARE BELOW ---
 
   // This helper function handles keyboard accessibility.
@@ -38,26 +38,38 @@ export default function ConversationRow({ data, active, onSelect, onTogglePin, s
             <span className="truncate text-sm font-medium tracking-tight">{data.title}</span>
           </div>
         </div>
-        {/* The inner <button> is now valid because its parent is a <div> */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onTogglePin()
-          }}
-          title={data.pinned ? "Unpin" : "Pin"}
-          className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
-          aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
-        >
-          {data.pinned ? (
-            <Star className="h-4 w-4 fill-zinc-800 text-zinc-800 dark:fill-zinc-200 dark:text-zinc-200" />
-          ) : (
-            <Star className="h-4 w-4" />
-          )}
-        </button>
-      </div>
 
-      <div className="pointer-events-none absolute left-[calc(100%+6px)] top-1 hidden w-64 rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-700 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 md:group-hover:block">
-        <div className="line-clamp-6 whitespace-pre-wrap">{data.preview}</div>
+        <div className="flex items-center gap-1">
+          {/* Delete Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
+            title="Delete chat"
+            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+            aria-label="Delete conversation"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+
+          {/* Pin Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onTogglePin()
+            }}
+            title={data.pinned ? "Unpin" : "Pin"}
+            className="rounded-md p-1 text-zinc-500 opacity-0 transition group-hover:opacity-100 hover:bg-zinc-200/50 dark:text-zinc-300 dark:hover:bg-zinc-700/60"
+            aria-label={data.pinned ? "Unpin conversation" : "Pin conversation"}
+          >
+            {data.pinned ? (
+              <Star className="h-4 w-4 fill-zinc-800 text-zinc-800 dark:fill-zinc-200 dark:text-zinc-200" />
+            ) : (
+              <Star className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )
