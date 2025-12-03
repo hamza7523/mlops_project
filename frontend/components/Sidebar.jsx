@@ -62,6 +62,7 @@ export default function Sidebar({
   selectedId,
   onSelect,
   togglePin,
+  deleteChat,
   query,
   setQuery,
   searchRef,
@@ -282,7 +283,6 @@ export default function Sidebar({
               <button
                 onClick={createNewChat}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-white dark:text-zinc-900"
-                title="New Chat (⌘N)"
               >
                 <Plus className="h-4 w-4" /> Start New Chat
               </button>
@@ -307,14 +307,15 @@ export default function Sidebar({
                       active={c.id === selectedId}
                       onSelect={() => onSelect(c.id)}
                       onTogglePin={() => togglePin(c.id)}
+                      onDelete={() => deleteChat(c.id)}
                     />
                   ))
                 )}
               </SidebarSection>
 
               <SidebarSection
-                icon={<Clock className="h-4 w-4" />}
-                title="RECENT"
+                icon={null}
+                title="CHATS"
                 collapsed={collapsed.recent}
                 onToggle={() => setCollapsed((s) => ({ ...s, recent: !s.recent }))}
               >
@@ -330,6 +331,7 @@ export default function Sidebar({
                       active={c.id === selectedId}
                       onSelect={() => onSelect(c.id)}
                       onTogglePin={() => togglePin(c.id)}
+                      onDelete={() => deleteChat(c.id)}
                       showMeta
                     />
                   ))

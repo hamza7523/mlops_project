@@ -46,7 +46,40 @@ const ChatPane = forwardRef(function ChatPane(
     [],
   )
 
-  if (!conversation) return null
+  if (!conversation) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+        <div className="flex flex-col items-center gap-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="200"
+            height="200"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-green-500/20 dark:text-green-400/20"
+          >
+            {/* Cute Potato Body */}
+            <path d="M12 4c-5.5 0-8.5 4-8.5 9c0 5.5 3.5 8.5 8.5 8.5c5.5 0 8.5-3.5 8.5-8.5c0-5.5-3-8.5-8.5-8.5z" />
+            {/* Eyes */}
+            <path d="M9 11h.01" strokeWidth="3" />
+            <path d="M15 11h.01" strokeWidth="3" />
+            {/* Smile */}
+            <path d="M10 14a2.5 2.5 0 0 0 4 0" />
+            {/* Blush/Cheeks (Optional details for cuteness) */}
+            <path d="M7.5 12.5a1 1 0 0 1 0 .5" opacity="0.5" />
+            <path d="M16.5 12.5a1 1 0 0 1 0 .5" opacity="0.5" />
+          </svg>
+          <p className="text-lg font-medium text-zinc-500 dark:text-zinc-400">
+            Select a chat to get started
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   const tags = ["Certified", "Personalized", "Experienced", "Helpful"]
   const messages = Array.isArray(conversation.messages) ? conversation.messages : []
