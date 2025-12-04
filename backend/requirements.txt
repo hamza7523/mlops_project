@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.2.0+cpu
 torchvision==0.17.0+cpu
 fastapi
@@ -11,6 +12,3 @@ prometheus-fastapi-instrumentator
 evidently==0.2.6
 pandas
 scikit-learn
-# Heavy libraries (Only keep if strictly necessary)
-llama-cpp-python
-langchain
