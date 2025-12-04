@@ -289,6 +289,8 @@ grafana:
   ```
 <img width="1362" height="686" alt="image" src="https://github.com/user-attachments/assets/ce5191ef-2c4e-416a-8751-2d3b4e4c551a" />
 
+<img width="1280" height="658" alt="image" src="https://github.com/user-attachments/assets/1aa61a9e-d772-4478-aff7-24a9543ec09f" />
+
 
 Prometheus scrapes our app at app:8000/metrics every 5s.
 app is the service name from Docker Compose, so Prometheus can reach it over the Compose network instead of localhost. This is how you're supposed to wire Prometheus ↔ FastAPI in Docker.
@@ -315,6 +317,8 @@ Once the data source is connected, we create panels that query our FastAPI metri
 This is the normal Prometheus → Grafana workflow: Prometheus scrapes our FastAPI /metrics, then Grafana queries Prometheus and plots those time series.
 
 ![grafana connection](https://github.com/user-attachments/assets/1efe91c4-6699-4088-98ae-70dad97a1190)
+
+<img width="1280" height="658" alt="image" src="https://github.com/user-attachments/assets/21cd08ee-a393-4944-9637-8eb342a82de2" />
 
 
 #### Docker-compose to bring it all together
@@ -407,6 +411,10 @@ Detailed analysis of individual feature distributions and their statistical prop
 <img width="1564" alt="Data Quality Report" src="https://github.com/user-attachments/assets/464b66be-d589-4fb8-acb4-30e01f4f69d5" />
 
 Comprehensive data quality metrics including missing values, data types, and consistency checks.
+
+### 4. Evidently AI Dashboard 5/12/2025
+<img width="1280" height="660" alt="image" src="https://github.com/user-attachments/assets/caedc215-181a-401a-ae13-e9d95288c63a" />
+
 
 ### Summary of Monitoring Results
 
