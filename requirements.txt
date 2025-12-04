@@ -1,2 +1,22 @@
-# Root requirements.txt
-# This file is empty because the main application has moved to backend/
+fastapi
+uvicorn
+python-multipart
+transformers
+sentence-transformers
+langchain
+chromadb>=0.5.0
+onnxruntime
+numpy<2.0.0
+
+pillow
+boto3
+accelerate
+langchain-community
+python-dotenv
+optimum[onnxruntime]
+llama-cpp-python
+huggingface-hub
+prometheus-fastapi-instrumentator
+evidently
+pandas
+scikit-learn
