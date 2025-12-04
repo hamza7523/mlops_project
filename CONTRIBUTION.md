@@ -35,6 +35,8 @@ This document tracks the individual contributions of each team member to the Flo
 - Pushed Models to S3
 - Model Serving Logic
 - MLflow Monitoring
+- Architecture Diagrams
+- M2 Bonus - Custom Retrievers
 
 ### 5. AnushaRandhawa
 - Prometheus and Grafana for M1
