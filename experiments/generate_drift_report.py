@@ -18,7 +18,7 @@ try:
     else:
         # Fallback if file not moved during build
         class_names = [f"Disease_Class_{i}" for i in range(38)]
-    
+
     print(f"✅ Loaded {len(class_names)} classes from class_names.txt")
 
 except Exception as e:
@@ -28,10 +28,12 @@ except Exception as e:
 # 2. Generate Realistic Data Simulation
 # Reference: Represents your balanced Training Data
 ref_size = 1000
-reference_data = pd.DataFrame({
-    "prediction": np.random.choice(class_names, size=ref_size),
-    "confidence": np.random.uniform(0.7, 0.99, size=ref_size),
-})
+reference_data = pd.DataFrame(
+    {
+        "prediction": np.random.choice(class_names, size=ref_size),
+        "confidence": np.random.uniform(0.7, 0.99, size=ref_size),
+    }
+)
 
 # Current: Represents Production Data (With Drift!)
 # Simulate a drift where the first class is appearing too often
@@ -40,12 +42,14 @@ current_drift = np.random.choice(class_names, size=curr_size)
 
 # Force 30% of data to be one specific disease to show "Drift" in the report
 drift_class = class_names[0] if class_names else "Drifted_Class"
-current_drift[:150] = drift_class 
+current_drift[:150] = drift_class
 
-current_data = pd.DataFrame({
-    "prediction": current_drift,
-    "confidence": np.random.uniform(0.5, 0.95, size=curr_size),
-})
+current_data = pd.DataFrame(
+    {
+        "prediction": current_drift,
+        "confidence": np.random.uniform(0.5, 0.95, size=curr_size),
+    }
+)
 
 print("Generating Data Drift Report on Plant Disease Classes...")
 
@@ -65,10 +69,12 @@ print(f"Report saved to {report_path}")
 PORT = 7000
 DIRECTORY = output_dir
 
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         target = super().translate_path(path)
         return target.replace(os.getcwd(), os.path.join(os.getcwd(), DIRECTORY))
+
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print(f"Evidently Dashboard running at http://localhost:{PORT}")
