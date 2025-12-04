@@ -16,3 +16,7 @@ python-dotenv
 optimum[onnxruntime]
 llama-cpp-python
 huggingface-hub
+prometheus-fastapi-instrumentator
+evidently
+pandas
+scikit-learn
