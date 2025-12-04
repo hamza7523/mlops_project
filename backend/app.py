@@ -1,6 +1,7 @@
 import os
 import torch
 import io
+from prometheus_fastapi_instrumentator import Instrumentator
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from fastapi import FastAPI, File, UploadFile
@@ -28,6 +29,18 @@ except ImportError:
     pass
 
 app = FastAPI(title="Flora-Bot API")
+
+# --- Prometheus Monitoring Setup ---
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=[".*admin.*", "/metrics"],
+    inprogress_name="inprogress",
+    inprogress_labels=True,
+)
+instrumentator.instrument(app).expose(app)
+# -----------------------------------
 
 app.add_middleware(
     CORSMiddleware,

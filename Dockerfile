@@ -1,42 +1,45 @@
-# ---- Builder Stage ----
-# Installs dependencies using the locked requirements.txt.
+# 1. Base Image
 FROM python:3.11-slim as builder
 
+# Install basic tools
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Increase timeout
+ENV PIP_DEFAULT_TIMEOUT=1000
+
+# 2. Install Python Build Tools
+RUN pip install pip-tools wheel
+
+# 3. Setup Work Directory
 WORKDIR /app
 
-# We need pip-tools to use pip-sync for a clean install
-RUN pip install pip-tools
+# 4. Install Dependencies
+COPY backend/requirements.txt ./
 
-# Copy only the requirement files to leverage Docker's layer caching
-COPY requirements.in requirements.txt ./
+# Install requirements (using the heavy list) with pre-built wheels to be fast
+RUN pip install --no-cache-dir -r requirements.txt \
+    --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 
-# Install dependencies from the locked file.
-RUN pip-sync requirements.txt
-
-# ---- Final Stage ----
-# Copies only the necessary files and installed dependencies.
+# 5. Runtime Stage
 FROM python:3.11-slim
 
-# Create a non-root user for better security
 RUN useradd --create-home appuser
 USER appuser
 WORKDIR /home/appuser/app
 
-# Copy installed Python packages from the builder stage
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-
-# Copy Python executables from the builder stage (like uvicorn)
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy the application source code
-COPY ./src/app/ ./app/
+COPY ./backend ./backend
+COPY ./class_names.txt .
 
-# Healthcheck to verify the API is running before marking the container as healthy
-HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
-
-# Expose the port the app runs on
 EXPOSE 8000
 
-# Command to run the Uvicorn server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+HEALTHCHECK CMD curl --fail http://localhost:8000/health || exit 1
+
+# Point to the real app
+CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000"]
