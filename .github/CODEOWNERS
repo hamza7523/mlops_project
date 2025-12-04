@@ -1,0 +1,6 @@
+# This file defines who owns which files in the repository.
+# GitHub will automatically request reviews from these owners when the files change.
+# To enforce this, "Require review from Code Owners" must be enabled in Branch Protection rules.
+
+# The CONTRIBUTION.md file is exclusively owned by Qar-Raz
+CONTRIBUTION.md @Qar-Raz
