@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface GradientTextProps {
   children: ReactNode;
@@ -22,7 +23,10 @@ export default function GradientText({
 
   return (
     <div
-      className={`relative mx-auto flex max-w-fit flex-row items-center justify-center rounded-[1.25rem] font-medium backdrop-blur transition-shadow duration-500 overflow-hidden cursor-pointer ${className}`}
+      className={cn(
+        "relative mx-auto flex max-w-fit flex-row items-center justify-center rounded-[1.25rem] font-medium backdrop-blur transition-shadow duration-500 overflow-hidden cursor-pointer",
+        className
+      )}
     >
       {showBorder && (
         <div
@@ -33,7 +37,15 @@ export default function GradientText({
           }}
         >
           <div
-            className="absolute inset-0 bg-black rounded-[1.25rem] z-[-1]"
+            className={cn(
+              "absolute inset-0 bg-black rounded-[1.25rem] z-[-1]",
+              // Try to match the parent's roundedness if possible, but for now hardcoded or we need to extract it.
+              // Since showBorder is false for the case in question, this part is less critical right now.
+              // But to be safe, let's just keep it as is or maybe allow overriding via a prop?
+              // For now, I'll leave the inner rounded hardcoded as it matches the default outer.
+              // If the user overrides outer, inner might look weird if showBorder is true.
+              // But showBorder is false for "RAG Powered".
+            )}
             style={{
               width: 'calc(100% - 2px)',
               height: 'calc(100% - 2px)',

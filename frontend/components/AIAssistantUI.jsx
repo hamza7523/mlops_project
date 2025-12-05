@@ -101,8 +101,11 @@ export default function AIAssistantUI() {
     return () => window.removeEventListener("keydown", onKey)
   }, [sidebarOpen, conversations])
 
+  const initialized = useRef(false)
+
   useEffect(() => {
-    if (!selectedId) {
+    if (!initialized.current && !selectedId) {
+      initialized.current = true
       createNewChat()
     }
   }, [])
@@ -128,6 +131,13 @@ export default function AIAssistantUI() {
 
   function togglePin(id) {
     setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c)))
+  }
+
+  function deleteChat(id) {
+    setConversations((prev) => prev.filter((c) => c.id !== id))
+    if (selectedId === id) {
+      setSelectedId(null)
+    }
   }
 
   function createNewChat() {
@@ -432,6 +442,7 @@ export default function AIAssistantUI() {
           selectedId={selectedId}
           onSelect={(id) => setSelectedId(id)}
           togglePin={togglePin}
+          deleteChat={deleteChat}
           query={query}
           setQuery={setQuery}
           searchRef={searchRef}

@@ -1,2 +1,2 @@
-fastapi
-uvicorn[standard]
+# Root requirements.in
+# This file is empty because the main application has moved to backend/

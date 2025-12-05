@@ -68,10 +68,10 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
           className="flex flex-wrap items-center justify-center gap-6"
         >
-          <Link href="/learn-more" className={buttonClass}>
+          <Link href="/try-it-out" className={buttonClass}>
             Learn More
           </Link>
-          <Link href="/try-it-out" className={buttonClass}>
+          <Link href="/learn-more" className={buttonClass}>
             Try It Out
           </Link>
         </motion.div>
@@ -96,7 +96,7 @@ export default function Home() {
                     colors={["#40ffaa", "#ef4444", "#166534", "#4079ff", "#40ffaa"]}
                     animationSpeed={16}
                     showBorder={false}
-                    className="text-4xl font-bold mb-2 drop-shadow-[0_0_10px_rgba(64,121,255,0.5)]"
+                    className="text-4xl font-bold mb-2 drop-shadow-[0_0_10px_rgba(64,121,255,0.5)] rounded-lg px-4 py-2"
                 >
                     RAG Powered
                 </GradientText>
