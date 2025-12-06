@@ -10,8 +10,9 @@ The analysis confirms that the model has successfully converged with high accura
 # **1. Final Performance Metrics**
 
 The following figure displays the comprehensive list of metrics recorded at the conclusion of the 10th epoch:
+<img width="1920" height="955" alt="Screenshot 2025-12-06 at 3 58 27 PM" src="https://github.com/user-attachments/assets/4046fb73-f8b4-4cd9-ad01-36728a9fdfa4" />
 
-![MLflow Metrics](https://preview.redd.it/e0l1a3vj045e1.png?width=2876&format=png&auto=webp&s=6b170c2a55099f667d4f3e695079a2955f1f0a52)
+
 
 ---
 
@@ -39,13 +40,14 @@ This indicates efficient inference capabilities suitable for production deployme
 ---
 
 # **2. Training Dynamics and Visualization Analysis**
+<img width="1918" height="947" alt="Screenshot 2025-12-06 at 3 57 50 PM" src="https://github.com/user-attachments/assets/89fc92aa-b800-47d0-8fb4-6aad4193a86f" />
+
+<img width="1920" height="439" alt="Screenshot 2025-12-06 at 3 58 09 PM" src="https://github.com/user-attachments/assets/53d5374d-59f2-4aa7-bdd6-12df1f11ffb4" />
+
 
 The following figures illustrate the progression of key metrics over the course of the training steps.  
 These visualizations provide insight into the learning schedule, convergence behavior, and system performance.
 
-![Training Metrics 1](https://preview.redd.it/b5x2s5nj045e1.png?width=2880&format=png&auto=webp&s=da8b9b870db540b64d436a5a9d80c35414f52f36)
-
-![Training Metrics 2](https://preview.redd.it/o1p4t1nj045e1.png?width=2880&format=png&auto=webp&s=e78e2d4d39f2858739199d945f7435f0868f000b)
 
 ---
 
