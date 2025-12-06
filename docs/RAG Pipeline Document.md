@@ -89,6 +89,10 @@ ensemble_retriever = EnsembleRetriever(
 results = ensemble_retriever.invoke(test_query)
 ```
 
+RAG PIPLEINE AND FULL ARCHITECTURE PIPELINE DIAGRAM
+<img width="4144" height="4932" alt="DIAGRAM 1" src="https://github.com/user-attachments/assets/f17ceeae-b79d-42a9-aab3-4cc389666f52" />
+
+
 
 
 
